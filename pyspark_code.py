@@ -6,9 +6,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 spark.conf.set('spark.sql.shuffle.partitions','8')
 
-/***********************************
-Claims
-***********************************/
+## Claims
 
 claims = spark.read.csv('gs://hhp-data/HHP_release3/Claims.csv',header=True).repartition(8)
 claims=claims\
@@ -196,9 +194,7 @@ claims_per_member = claims_per_member\
     .withColumn('dsfs_stdev', when(isnan('dsfs_stdev') ,None).otherwise(col('dsfs_stdev')))
 claims_per_member.createOrReplaceTempView('claims_per_member')
 
-/***********************************
-Members
-***********************************/
+## Members
 
 members=spark.read.csv('gs://hhp-data/HHP_release3/Members.csv',header=True)
 members=members\
@@ -225,9 +221,7 @@ FROM
 """)
 members.createOrReplaceTempView('members')
 
-/******************
-DRUG COUNTS
-******************/
+## DRUG COUNTS
 
 drugCount=spark.read.csv('gs://hhp-data/HHP_release3/DrugCount.csv',header=True)
 drugCount=drugCount\
@@ -255,9 +249,7 @@ DRUGCOUNT_SUMMARY.createOrReplaceTempView('DRUGCOUNT_SUMMARY')
 DRUGCOUNT_SUMMARY.cache()
 DRUGCOUNT_SUMMARY.count()
 
-/******************
-LAB COUNTS
-******************/
+## LAB COUNTS
 
 labCount=spark.read.csv('gs://hhp-data/HHP_release3/LabCount.csv',header=True)
 labCount=labCount\
@@ -284,9 +276,7 @@ LABCOUNT_SUMMARY.createOrReplaceTempView('LABCOUNT_SUMMARY')
 LABCOUNT_SUMMARY.cache()
 LABCOUNT_SUMMARY.count()
     
-/********************************
-Targets
-********************************/  
+## Targets 
 
 daysInHospital_Y2=spark.read.csv('gs://hhp-data/HHP_release3/DaysInHospital_Y2.csv',header=True)
 daysInHospital_Y2=daysInHospital_Y2\
@@ -404,11 +394,36 @@ feature_matrix[feature_matrix['trainset']==1]\
 #|    max|                 15|
 #+-------+-------------------+
 
-## modeling gradient boosting regreesion trees using xbgoost
+## modeling gradient boosting regreesion trees using GradientBoostingRegressor
 ## download the dataset 
 ## cd /Users/linjunli/Documents/Kaggle/HHP/HHP_release3/feature_matrix
+import pandas as pd
+import numpy as np
+from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import GradientBoostingRegressor
-
+from sklearn.model_selection import train_test_split
+                
+#import matplotlib.pyplot as plt
+df=pd.read_csv('feature_matrix_train.csv')
+df['DaysInHospital']=np.log(df['DaysInHospital']+1)
+df=df.sort_values(['YEAR_mm','MemberID_mm'])
+X = df.drop(['DaysInHospital','trainset','MemberID_mm','YEAR_mm'],axis=1)
+X = X.fillna(-9999)
+y = df['DaysInHospital']
+                
+X_train,X_test, y_train,y_test = train_test_split(X,
+                                                  y,
+                                                  test_size=0.2,
+                                                  random_state=1234)
+                
+clf28 = GradientBoostingRegressor(loss='ls', subsample=0.5, 
+                                n_estimators=1000, max_depth=4,
+                                learning_rate=.03, min_samples_leaf=50)
+clf28.fit(X_train,y_train)
+y_test_hat28 = clf28.predict(X_test)
+e28= np.sqrt(sum((y_test_hat28-y_test.values)**2)/len(y_test))
+# e28
+# 0.45096967439293228
                 
                 
                 
