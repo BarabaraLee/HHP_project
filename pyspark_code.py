@@ -359,14 +359,6 @@ on a.MemberID_mm=e.Memberid_lc
                 
 feature_matrix=temp4.withColumn('labNULL',when(isnull(col('labCount_max')),1).otherwise(0))\
             .withColumn('drugNULL',when(isnull(col('drugCount_max')),1).otherwise(0))
-#            .withColumn('labCount_max',when(isnull(col('labCount_max')),0).otherwise(col('labCount_max')))\
-#            .withColumn('labCount_min',when(isnull(col('labCount_min')),0).otherwise(col('labCount_min')))\
-#            .withColumn('labCount_ave',when(isnull(col('labCount_ave')),0).otherwise(col('labCount_ave')))\
-#            .withColumn('labcount_months',when(isnull(col('labcount_months')),0).otherwise(col('labcount_months')))\
-#            .withColumn('drugCount_max',when(isnull(col('drugCount_max')),0).otherwise(col('drugCount_max')))\
-#            .withColumn('drugCount_min',when(isnull(col('drugCount_min')),0).otherwise(col('drugCount_min')))\
-#            .withColumn('drugCount_ave',when(isnull(col('drugCount_ave')),0).otherwise(col('drugCount_ave')))\
-#            .withColumn('drugcount_months',when(isnull(col('drugcount_months')),0).otherwise(col('drugcount_months')))
 
 feature_matrix.count()
 #218415
